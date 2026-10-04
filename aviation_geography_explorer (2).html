@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Sky Is Not Empty — Aviation Geography Explorer</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --navy:#071b33; --blue:#0b5fa5; --sky:#eaf6ff; --orange:#f28c28;
+  --white:#fff; --muted:#5b6b7b; --line:#d9e4ee; --green:#1f8a70;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f8fb;color:#102235}
+header{background:linear-gradient(135deg,var(--navy),#0c4775);color:white;padding:42px 22px;text-align:center}
+header .eyebrow{letter-spacing:3px;text-transform:uppercase;font-size:.78rem;opacity:.8}
+h1{font-size:clamp(2rem,6vw,4rem);margin:10px 0 5px}
+header p{max-width:760px;margin:0 auto;opacity:.9;font-size:1.05rem}
+main{max-width:1150px;margin:28px auto;padding:0 18px}
+.grid{display:grid;grid-template-columns:1.3fr .7fr;gap:20px}
+.card{background:white;border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 8px 30px rgba(7,27,51,.06);margin-bottom:20px}
+.card h2{margin-top:0;color:var(--navy)}
+#map{height:500px;border-radius:14px;overflow:hidden}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{font-weight:700;font-size:.88rem}
+select,button{width:100%;padding:12px;border-radius:10px;border:1px solid #cbd8e4;font:inherit}
+button{background:var(--navy);color:white;font-weight:700;cursor:pointer;border:none}
+button:hover{filter:brightness(1.12)}
+.stat{background:var(--sky);border-radius:12px;padding:14px;margin-top:12px}
+.stat strong{display:block;font-size:1.45rem;color:var(--blue)}
+.factor-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.factor{padding:15px;border:1px solid var(--line);border-radius:12px;background:#fbfdff}
+.factor b{display:block;margin-bottom:4px}
+.quiz button{margin-top:8px;background:#eef5fa;color:var(--navy);border:1px solid var(--line);text-align:left}
+#quizResult{font-weight:800;margin-top:12px}
+footer{text-align:center;color:var(--muted);padding:10px 20px 40px;font-size:.85rem}
+.small{color:var(--muted);font-size:.9rem}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.controls{grid-template-columns:1fr}.factor-grid{grid-template-columns:1fr}#map{height:420px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Geography × Aviation</div>
+  <h1>The Sky Is Not Empty</h1>
+  <p>How Geography Governs Global Aviation — an interactive exploration of routes, coordinates and the physical world beneath every flight.</p>
+</header>
+
+<main>
+  <section class="card">
+    <h2>🌍 Interactive Route Explorer</h2>
+    <p class="small">Choose two airports. The map draws the great-circle route and calculates the approximate distance.</p>
+    <div class="controls">
+      <div>
+        <label for="from">Departure</label>
+        <select id="from"></select>
+      </div>
+      <div>
+        <label for="to">Arrival</label>
+        <select id="to"></select>
+      </div>
+    </div>
+    <div class="stat">
+      <span>Great-circle distance</span>
+      <strong id="distance">—</strong>
+      <span id="routeNote" class="small"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <div id="map"></div>
+  </section>
+
+  <section class="grid">
+    <div>
+      <section class="card">
+        <h2>🧭 Geographic Layers</h2>
+        <div class="factor-grid">
+          <div class="factor"><b>🌍 Earth's curvature</b><span>Shortest routes on a sphere are great-circle paths.</span></div>
+          <div class="factor"><b>🌬️ Wind</b><span>Upper-air winds can change flight time and route planning.</span></div>
+          <div class="factor"><b>🌦️ Weather</b><span>Storms, visibility and other atmospheric conditions can affect operations.</span></div>
+          <div class="factor"><b>🏔️ Terrain</b><span>Mountains and elevation influence airport location and aircraft performance.</span></div>
+          <div class="factor"><b>🏙️ Human geography</b><span>Population, trade and cities help determine where major hubs develop.</span></div>
+          <div class="factor"><b>🗺️ Airspace</b><span>Political boundaries, restricted areas and traffic-management regions shape routes.</span></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>💡 Why doesn't a flight simply take a straight line?</h2>
+        <p>On a flat map, the shortest route can look curved or strangely positioned. Aircraft operate on a spherical Earth, so long-distance navigation often follows a <b>great-circle route</b>. Actual routes can then be adjusted for weather, winds, airspace, traffic and operational considerations.</p>
+      </section>
+    </div>
+
+    <div>
+      <section class="card quiz">
+        <h2>🧭 Coordinate Challenge</h2>
+        <p>Which airport is approximately at <b>1.36° N, 103.99° E</b>?</p>
+        <button onclick="answer(false)">A. Tokyo Haneda (HND)</button>
+        <button onclick="answer(true)">B. Singapore Changi (SIN)</button>
+        <button onclick="answer(false)">C. London Heathrow (LHR)</button>
+        <button onclick="answer(false)">D. Dubai International (DXB)</button>
+        <div id="quizResult"></div>
+      </section>
+
+      <section class="card">
+        <h2>✈️ Key Idea</h2>
+        <p><b>Every flight is a geographical journey.</b></p>
+        <p class="small">The aircraft may be above the clouds, but it is still being shaped by Earth's surface, atmosphere, human geography and political geography.</p>
+      </section>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Built as an interactive companion to “The Sky Is Not Empty: How Geography Governs Global Aviation”.
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const airports = {
+  SIN:{name:"Singapore Changi (SIN)",lat:1.3644,lon:103.9915},
+  EWR:{name:"Newark Liberty (EWR)",lat:40.6895,lon:-74.1745},
+  LHR:{name:"London Heathrow (LHR)",lat:51.4700,lon:-0.4543},
+  KIX:{name:"Kansai International (KIX)",lat:34.4347,lon:135.2440},
+  CGK:{name:"Soekarno–Hatta (CGK)",lat:-6.1256,lon:106.6559},
+  ATL:{name:"Atlanta Hartsfield–Jackson (ATL)",lat:33.6407,lon:-84.4277},
+  DXB:{name:"Dubai International (DXB)",lat:25.2532,lon:55.3657},
+  SYD:{name:"Sydney Kingsford Smith (SYD)",lat:-33.9399,lon:151.1753}
+};
+
+const fromSel=document.getElementById("from");
+const toSel=document.getElementById("to");
+Object.entries(airports).forEach(([code,a])=>{
+  fromSel.add(new Option(a.name,code));
+  toSel.add(new Option(a.name,code));
+});
+fromSel.value="SIN"; toSel.value="LHR";
+
+const map=L.map("map").setView([20,20],2);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+  attribution:'© OpenStreetMap contributors'
+}).addTo(map);
+
+let routeLine=null, markers=[];
+function haversine(a,b){
+  const R=6371, rad=Math.PI/180;
+  const dLat=(b.lat-a.lat)*rad, dLon=(b.lon-a.lon)*rad;
+  const x=Math.sin(dLat/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(x));
+}
+function interpolateGreatCircle(a,b,steps=80){
+  const rad=Math.PI/180;
+  const lat1=a.lat*rad, lon1=a.lon*rad, lat2=b.lat*rad, lon2=b.lon*rad;
+  const v1=[Math.cos(lat1)*Math.cos(lon1),Math.cos(lat1)*Math.sin(lon1),Math.sin(lat1)];
+  const v2=[Math.cos(lat2)*Math.cos(lon2),Math.cos(lat2)*Math.sin(lon2),Math.sin(lat2)];
+  const dot=Math.max(-1,Math.min(1,v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2]));
+  const omega=Math.acos(dot), sinOmega=Math.sin(omega);
+  const points=[];
+  for(let i=0;i<=steps;i++){
+    const t=i/steps;
+    let x,y,z;
+    if(Math.abs(sinOmega)<1e-8){x=v1[0];y=v1[1];z=v1[2];}
+    else{
+      const k1=Math.sin((1-t)*omega)/sinOmega, k2=Math.sin(t*omega)/sinOmega;
+      x=k1*v1[0]+k2*v2[0]; y=k1*v1[1]+k2*v2[1]; z=k1*v1[2]+k2*v2[2];
+    }
+    const lat=Math.atan2(z,Math.sqrt(x*x+y*y))/rad;
+    const lon=Math.atan2(y,x)/rad;
+    points.push([lat,lon]);
+  }
+  return points;
+}
+function update(){
+  const a=airports[fromSel.value], b=airports[toSel.value];
+  if(routeLine) map.removeLayer(routeLine);
+  markers.forEach(m=>map.removeLayer(m)); markers=[];
+  const dist=haversine(a,b);
+  document.getElementById("distance").textContent=Math.round(dist).toLocaleString()+" km";
+  document.getElementById("routeNote").textContent=
+    `${a.name.split(" (")[0]} → ${b.name.split(" (")[0]} • great-circle calculation`;
+  routeLine=L.polyline(interpolateGreatCircle(a,b),{weight:4,opacity:.85}).addTo(map);
+  markers.push(L.marker([a.lat,a.lon]).addTo(map).bindPopup("<b>Departure</b><br>"+a.name));
+  markers.push(L.marker([b.lat,b.lon]).addTo(map).bindPopup("<b>Arrival</b><br>"+b.name));
+  map.fitBounds(routeLine.getBounds(),{padding:[30,30]});
+}
+function answer(correct){
+  const r=document.getElementById("quizResult");
+  r.textContent=correct ? "✅ Correct! Singapore Changi (SIN)." : "❌ Try again — think about Southeast Asia.";
+  r.style.color=correct ? "#1f8a70" : "#b33a3a";
+}
+fromSel.addEventListener("change",update);
+toSel.addEventListener("change",update);
+update();
+</script>
+</body>
+</html>
